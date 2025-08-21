@@ -10,9 +10,7 @@ from pydantic import BaseModel
 
 # ----------------- CONFIG -----------------
 ALLOWED_ORIGINS = [
-    "https://<your-gh-user>.github.io",
-    "https://mbti-detector-ui.vercel.app",
-    "https://your-domain.com",
+    "https://wbmartin00.github.io"
 ]
 
 MODEL_DIR = pathlib.Path(os.getenv("MODEL_DIR", "/models/mbti-distilbert-model"))
