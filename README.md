@@ -6,7 +6,7 @@ FastAPI backend for serving MBTI personality predictions from a fine-tuned Disti
 
 ##  Live API
 
-Base URL: **https://mbti-detector-api.fly.dev**
+Base URL: **[https://mbti-detector-api.fly.dev](https://mbti-api.fly.dev/)**
 
 **Endpoints:**
 
