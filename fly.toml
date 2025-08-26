@@ -1,4 +1,4 @@
-app = "mbti-detector-api"
+app = "mbti-api"
 primary_region = "iad"
 
 [build]
