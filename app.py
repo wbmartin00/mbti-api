@@ -22,7 +22,7 @@ app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOWED_ORIGINS,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["*"],
 )
 
@@ -77,6 +77,9 @@ class PredictOut(BaseModel):
     label: str
     scores: List[float]
 
+@app.get("/")
+def root():
+    return {"ok": True, "service": "mbti-api"}
 
 @app.get("/healthz")
 def healthz():
