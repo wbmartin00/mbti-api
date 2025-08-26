@@ -110,4 +110,4 @@ def predict(inp: PredictIn):
         scores = logits.tolist()
 
     label = _id2label.get(pred_id, f"LABEL_{pred_id}")
-    return {"label": label, "scores": scores}
+    return {"label": label, "prediction": label, "scores": label}
