@@ -20,3 +20,5 @@ fi
   "https://huggingface.co/wbmartin00/mbti-distilbert/resolve/main/special_tokens_map.json"
 [ -f vocab.txt ] || curl -L -o vocab.txt \
   "https://huggingface.co/wbmartin00/mbti-distilbert/resolve/main/vocab.txt"
+  [ -f tokenizer.json ] || curl -L -o tokenizer.json \
+  "https://huggingface.co/wbmartin00/mbti-distilbert/resolve/main/tokenizer.json"
