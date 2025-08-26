@@ -109,5 +109,8 @@ def predict(inp: PredictIn):
         pred_id = int(torch.argmax(logits).item())
         scores = logits.tolist()
 
+    probs = torch.nn.functional.softmax(outputs.logits, dim=-1)
+    scores = probs.detach().cpu().numpy().flatten().tolist()
+
     label = _id2label.get(pred_id, f"LABEL_{pred_id}")
-    return {"label": label, "prediction": label, "scores": label}
+    return {"label": label, "prediction": label, "scores": scores}
