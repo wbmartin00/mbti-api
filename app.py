@@ -74,8 +74,8 @@ class PredictIn(BaseModel):
 
 
 class PredictOut(BaseModel):
-    label: str
     scores: List[float]
+    prediction: str
 
 @app.get("/")
 def root():
@@ -113,4 +113,4 @@ def predict(inp: PredictIn):
     #scores = probs.detach().cpu().numpy().flatten().tolist()
 
     label = _id2label.get(pred_id, f"LABEL_{pred_id}")
-    return {"label": label, "prediction": label}
+    return {"prediction": label, "scores": scores}
