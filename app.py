@@ -34,11 +34,36 @@ _label_encoder = None
 
 
 def load_label_encoder():
+    """Try to load sklearn LabelEncoder if available."""
     global _label_encoder
     if _label_encoder is None and LABEL_ENCODER_PATH.exists():
         with open(LABEL_ENCODER_PATH, "rb") as f:
             _label_encoder = pickle.load(f)
     return _label_encoder
+
+
+def build_id2label():
+    """Construct id->label mapping with safe fallback chain."""
+    global _id2label
+
+    # 1. Try sklearn LabelEncoder (preferred)
+    le = load_label_encoder()
+    if le is not None and hasattr(le, "classes_"):
+        _id2label = {i: (cls if isinstance(cls, str) else str(cls))
+                     for i, cls in enumerate(le.classes_)}
+        return
+
+    # 2. Try huggingface model config
+    if getattr(_model.config, "id2label", None):
+        _id2label = {int(i): str(lbl) for i, lbl in _model.config.id2label.items()}
+        return
+
+    # 3. Hardcoded MBTI fallback (alphabetical order like LabelEncoder)
+    mbti_alpha = [
+        "ENFJ","ENFP","ENTJ","ENTP","ESFJ","ESFP","ESTJ","ESTP",
+        "INFJ","INFP","INTJ","INTP","ISFJ","ISFP","ISTJ","ISTP"
+    ]
+    _id2label = {i: t for i, t in enumerate(mbti_alpha)}
 
 
 def load_model():
@@ -47,7 +72,7 @@ def load_model():
     if _model is not None:
         return
 
-    import torch  # local import to keep startup light
+    import torch
     torch.set_num_threads(int(os.getenv("TORCH_NUM_THREADS", "1")))
 
     from transformers import AutoTokenizer, AutoModelForSequenceClassification
@@ -60,13 +85,7 @@ def load_model():
         str(MODEL_DIR), local_files_only=True
     ).eval()
 
-    # id -> label map
-    le = load_label_encoder()
-    if le is not None and hasattr(le, "classes_"):
-        _id2label = {i: (lbl if isinstance(lbl, str) else str(lbl))
-                     for i, lbl in enumerate(le.classes_)}
-    else:
-        _id2label = getattr(_model.config, "id2label", {}) or {}
+    build_id2label()
 
 
 class PredictIn(BaseModel):
@@ -77,9 +96,11 @@ class PredictOut(BaseModel):
     scores: List[float]
     prediction: str
 
+
 @app.get("/")
 def root():
     return {"ok": True, "service": "mbti-api"}
+
 
 @app.get("/healthz")
 def healthz():
@@ -92,7 +113,7 @@ def predict(inp: PredictIn):
     if not text:
         raise HTTPException(status_code=400, detail="Empty text")
 
-    # Defensive cap to avoid runaway costs
+    # Defensive cap
     text = text[:MAX_TEXT_CHARS]
 
     load_model()
@@ -102,15 +123,14 @@ def predict(inp: PredictIn):
         toks = _tokenizer(
             text,
             truncation=True,
-            max_length=512,     # DistilBERT token limit
+            max_length=512,
             return_tensors="pt",
         )
         logits = _model(**toks).logits[0]
         pred_id = int(torch.argmax(logits).item())
         scores = logits.tolist()
 
-    #probs = torch.nn.functional.softmax(outputs.logits, dim=-1)
-    #scores = probs.detach().cpu().numpy().flatten().tolist()
-
-    label = _id2label.get(pred_id, f"LABEL_{pred_id}")
-    return {"prediction": label, "scores": scores}
+    return {
+        "scores": scores,
+        "prediction": _id2label.get(pred_id, str(pred_id))
+    }
