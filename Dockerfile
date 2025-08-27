@@ -8,6 +8,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY app.py .
+COPY label_encoder.pkl .  
 COPY fetch_weights.sh /usr/local/bin/fetch_weights.sh
 RUN chmod +x /usr/local/bin/fetch_weights.sh
 

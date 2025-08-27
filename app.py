@@ -14,7 +14,7 @@ ALLOWED_ORIGINS = [
 ]
 
 MODEL_DIR = pathlib.Path(os.getenv("MODEL_DIR", "/models/mbti-distilbert-model"))
-LABEL_ENCODER_PATH = pathlib.Path(os.getenv("LABEL_ENCODER_PATH", "/app/label_encoder.pkl"))
+LABEL_ENCODER_PATH = pathlib.Path(os.getenv("LABEL_ENCODER_PATH", "./label_encoder.pkl"))
 MAX_TEXT_CHARS = int(os.getenv("MAX_TEXT_CHARS", "200000"))
 # ------------------------------------------
 
@@ -36,6 +36,14 @@ _label_encoder = None
 def load_label_encoder():
     """Try to load sklearn LabelEncoder if available."""
     global _label_encoder
+    
+    # Debug: Print current working directory and file existence
+    import os
+    print(f"Current working directory: {os.getcwd()}")
+    print(f"Looking for label encoder at: {LABEL_ENCODER_PATH}")
+    print(f"File exists: {LABEL_ENCODER_PATH.exists()}")
+    print(f"Directory contents: {os.listdir('.')}")
+    
     if _label_encoder is None and LABEL_ENCODER_PATH.exists():
         with open(LABEL_ENCODER_PATH, "rb") as f:
             _label_encoder = pickle.load(f)
